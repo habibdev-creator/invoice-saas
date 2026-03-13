@@ -36,7 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Search, MoreHorizontal, Download, Trash2, FileText } from "lucide-react"
+import { Search, MoveHorizontal as MoreHorizontal, Download, Trash2, FileText } from "lucide-react"
 import { toast } from "sonner"
 
 interface Invoice {
