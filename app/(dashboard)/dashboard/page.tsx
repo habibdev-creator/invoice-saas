@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { FileText, Plus, TrendingUp, Clock, CheckCircle2 } from "lucide-react"
+import { FileText, Plus, TrendingUp, Clock, CircleCheck as CheckCircle2 } from "lucide-react"
 
 const stats = [
   {
