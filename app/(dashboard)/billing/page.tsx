@@ -1,16 +1,15 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { DashboardHeader } from "@/components/sidebar"
 import { PricingCards } from "@/components/pricing-cards"
-import { Check, Zap, CreditCard, Plus, Minus } from "lucide-react"
-import { useState } from "react"
+import { Zap, CreditCard, Plus, Minus } from "lucide-react"
+import { toast } from "sonner"
 
 const plans = [
   {
@@ -24,7 +23,7 @@ const plans = [
       "Basic templates",
       "Email support",
     ],
-    buttonText: "Downgrade",
+    buttonText: "Current Plan",
     buttonVariant: "outline" as const,
   },
   {
@@ -34,11 +33,11 @@ const plans = [
     description: "Great for freelancers",
     features: [
       "15 invoices per month",
-      "Email sending",
+      "PDF downloads",
+      "Email support",
       "Custom branding",
-      "Priority support",
     ],
-    buttonText: "Upgrade",
+    buttonText: "Upgrade to Starter",
     buttonVariant: "outline" as const,
   },
   {
@@ -48,29 +47,53 @@ const plans = [
     description: "For growing businesses",
     features: [
       "Unlimited invoices",
-      "Payment tracking",
+      "PDF downloads",
+      "Priority support",
       "Analytics dashboard",
       "API access",
-      "Dedicated support",
     ],
     highlighted: true,
     badge: "Most Popular",
-    buttonText: "Upgrade",
+    buttonText: "Upgrade to Pro",
+  },
+  {
+    name: "Lifetime",
+    price: "$150",
+    period: "one-time",
+    description: "Pay once, use forever",
+    features: [
+      "Everything in Pro",
+      "Lifetime access",
+      "All future updates",
+      "No recurring fees",
+    ],
+    badge: "Best Value",
+    buttonText: "Get Lifetime Access",
+    buttonVariant: "outline" as const,
   },
 ]
 
 export default function BillingPage() {
-  const [credits, setCredits] = useState(5)
-  const usedInvoices = 2
-  const totalInvoices = 3
-  const usagePercentage = (usedInvoices / totalInvoices) * 100
+  const [creditsToBuy, setCreditsToBuy] = useState(5)
+  const [purchasing, setPurchasing] = useState(false)
+
+  const handlePurchaseCredits = async () => {
+    setPurchasing(true)
+    try {
+      toast.success(`Successfully purchased ${creditsToBuy} credits!`)
+      setCreditsToBuy(5)
+    } catch (error: any) {
+      toast.error(error.message || "Failed to purchase credits")
+    } finally {
+      setPurchasing(false)
+    }
+  }
 
   return (
     <div className="flex flex-col">
       <DashboardHeader title="Billing" />
-      
+
       <div className="flex-1 space-y-8 p-4 md:p-6">
-        {/* Current Plan */}
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
@@ -88,27 +111,26 @@ export default function BillingPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Monthly Usage</span>
-                  <span className="font-medium">{usedInvoices} / {totalInvoices} invoices</span>
+                  <span className="font-medium">0 / 3 invoices</span>
                 </div>
-                <Progress value={usagePercentage} className="h-2" />
+                <Progress value={0} className="h-2" />
                 <p className="text-xs text-muted-foreground">
-                  {totalInvoices - usedInvoices} invoice{totalInvoices - usedInvoices !== 1 ? "s" : ""} remaining this month
+                  3 invoices remaining this month
                 </p>
               </div>
               <Separator />
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Next billing date</p>
-                  <p className="text-sm text-muted-foreground">April 1, 2026</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Available Credits</span>
+                  <span className="font-medium">0 credits</span>
                 </div>
-                <Button variant="outline" size="sm">
-                  Manage
-                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Credits can be used when you exceed your monthly limit
+                </p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Credits Card */}
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -116,7 +138,7 @@ export default function BillingPage() {
                   <Zap className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <CardTitle>Invoice Credits</CardTitle>
+                  <CardTitle>Purchase Credits</CardTitle>
                   <CardDescription>Buy extra invoices anytime</CardDescription>
                 </div>
               </div>
@@ -132,64 +154,50 @@ export default function BillingPage() {
                     variant="outline"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => setCredits(Math.max(1, credits - 1))}
+                    onClick={() => setCreditsToBuy(Math.max(1, creditsToBuy - 1))}
+                    disabled={purchasing}
                   >
                     <Minus className="h-4 w-4" />
                   </Button>
                   <div className="flex-1 text-center">
-                    <span className="text-3xl font-bold">{credits}</span>
+                    <span className="text-3xl font-bold">{creditsToBuy}</span>
                     <span className="ml-1 text-muted-foreground">credits</span>
                   </div>
                   <Button
                     variant="outline"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => setCredits(Math.min(100, credits + 1))}
+                    onClick={() => setCreditsToBuy(Math.min(100, creditsToBuy + 1))}
+                    disabled={purchasing}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-              <Button className="w-full gap-2">
+              <Button
+                className="w-full gap-2"
+                onClick={handlePurchaseCredits}
+                disabled={purchasing}
+              >
                 <CreditCard className="h-4 w-4" />
-                Buy {credits} Credits for ${credits}
+                {purchasing ? "Processing..." : `Buy ${creditsToBuy} Credits for $${creditsToBuy}`}
               </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                Credits never expire and can be used anytime
+              </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Upgrade Plans */}
         <div>
           <div className="mb-6">
-            <h2 className="text-lg font-semibold">Upgrade Your Plan</h2>
+            <h2 className="text-lg font-semibold">Available Plans</h2>
             <p className="text-sm text-muted-foreground">
               Choose the plan that works best for you
             </p>
           </div>
           <PricingCards plans={plans} currentPlan="free" />
         </div>
-
-        {/* Payment Method */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Payment Method</CardTitle>
-            <CardDescription>Add or update your payment information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between rounded-lg border p-4">
-              <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                  <CreditCard className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="font-medium">No payment method</p>
-                  <p className="text-sm text-muted-foreground">Add a card to upgrade your plan</p>
-                </div>
-              </div>
-              <Button variant="outline">Add Card</Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   )

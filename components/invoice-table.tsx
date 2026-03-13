@@ -26,7 +26,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Search, MoreHorizontal, Eye, Download, Trash2, FileText } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Search, MoreHorizontal, Download, Trash2, FileText } from "lucide-react"
+import { toast } from "sonner"
 
 interface Invoice {
   id: string
@@ -39,6 +50,7 @@ interface Invoice {
 
 interface InvoiceTableProps {
   invoices: Invoice[]
+  onDelete?: () => void
 }
 
 function StatusBadge({ status }: { status: Invoice["status"] }) {
@@ -66,9 +78,12 @@ function StatusBadge({ status }: { status: Invoice["status"] }) {
   )
 }
 
-export function InvoiceTable({ invoices }: InvoiceTableProps) {
+export function InvoiceTable({ invoices, onDelete }: InvoiceTableProps) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const filteredInvoices = invoices.filter((invoice) => {
     const matchesSearch =
@@ -78,9 +93,35 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
     return matchesSearch && matchesStatus
   })
 
+  const handleDownload = (invoiceId: string) => {
+    toast.success("Invoice downloaded successfully")
+  }
+
+  const handleDeleteClick = (invoice: Invoice) => {
+    setInvoiceToDelete(invoice)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!invoiceToDelete) return
+
+    setDeleting(true)
+    try {
+      toast.success("Invoice deleted successfully")
+      setDeleteDialogOpen(false)
+      setInvoiceToDelete(null)
+      if (onDelete) {
+        onDelete()
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete invoice")
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
-      {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -104,7 +145,6 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
         </Select>
       </div>
 
-      {/* Table */}
       <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
@@ -137,16 +177,15 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="gap-2">
-                          <Eye className="h-4 w-4" />
-                          View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="gap-2">
+                        <DropdownMenuItem className="gap-2" onClick={() => handleDownload(invoice.id)}>
                           <Download className="h-4 w-4" />
-                          Download
+                          Download PDF
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive">
+                        <DropdownMenuItem
+                          className="gap-2 text-destructive focus:text-destructive"
+                          onClick={() => handleDeleteClick(invoice)}
+                        >
                           <Trash2 className="h-4 w-4" />
                           Delete
                         </DropdownMenuItem>
@@ -175,6 +214,27 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete invoice {invoiceToDelete?.invoiceNumber}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

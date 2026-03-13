@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { DashboardHeader } from "@/components/sidebar"
@@ -18,64 +18,27 @@ import { FileText, Plus, TrendingUp, Clock, CheckCircle2 } from "lucide-react"
 
 const stats = [
   {
-    title: "Invoices Created",
-    value: "24",
-    description: "This month",
+    title: "Total Invoices",
+    value: "0",
+    description: "All time",
     icon: FileText,
-    trend: "+12% from last month",
   },
   {
     title: "Monthly Usage",
-    value: "2/3",
-    description: "Free invoices used",
+    value: "0/3",
+    description: "This month",
     icon: TrendingUp,
-    progress: 67,
+    progress: 0,
   },
   {
     title: "Remaining Free",
-    value: "1",
+    value: "3",
     description: "Invoice remaining",
     icon: Clock,
   },
 ]
 
-const recentInvoices = [
-  {
-    id: "INV-001",
-    client: "Acme Corp",
-    amount: "$1,250.00",
-    status: "paid",
-    date: "Mar 5, 2026",
-  },
-  {
-    id: "INV-002",
-    client: "Globex Inc",
-    amount: "$890.00",
-    status: "pending",
-    date: "Mar 4, 2026",
-  },
-  {
-    id: "INV-003",
-    client: "Wayne Enterprises",
-    amount: "$3,500.00",
-    status: "overdue",
-    date: "Feb 28, 2026",
-  },
-  {
-    id: "INV-004",
-    client: "Stark Industries",
-    amount: "$2,100.00",
-    status: "paid",
-    date: "Feb 25, 2026",
-  },
-  {
-    id: "INV-005",
-    client: "Umbrella Corp",
-    amount: "$750.00",
-    status: "pending",
-    date: "Feb 20, 2026",
-  },
-]
+const recentInvoices: any[] = []
 
 function StatusBadge({ status }: { status: string }) {
   const variants: Record<string, { label: string; className: string }> = {
@@ -106,9 +69,8 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col">
       <DashboardHeader title="Dashboard" />
-      
+
       <div className="flex-1 space-y-6 p-4 md:p-6">
-        {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-3">
           {stats.map((stat) => (
             <Card key={stat.title} className="transition-all duration-300 hover:shadow-md">
@@ -123,9 +85,6 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
                 <p className="text-xs text-muted-foreground">{stat.description}</p>
-                {stat.trend && (
-                  <p className="mt-1 text-xs text-green-600">{stat.trend}</p>
-                )}
                 {stat.progress !== undefined && (
                   <Progress value={stat.progress} className="mt-2 h-1.5" />
                 )}
@@ -134,7 +93,6 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Quick Actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold">Recent Invoices</h2>
@@ -150,7 +108,6 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {/* Recent Invoices Table */}
         <Card>
           <CardContent className="p-0">
             <Table>
@@ -164,25 +121,40 @@ export default function DashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recentInvoices.map((invoice) => (
-                  <TableRow key={invoice.id} className="cursor-pointer transition-colors hover:bg-muted/50">
-                    <TableCell className="font-medium">{invoice.id}</TableCell>
-                    <TableCell>{invoice.client}</TableCell>
-                    <TableCell>{invoice.amount}</TableCell>
-                    <TableCell>
-                      <StatusBadge status={invoice.status} />
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      {invoice.date}
+                {recentInvoices.length > 0 ? (
+                  recentInvoices.map((invoice) => (
+                    <TableRow key={invoice.id} className="cursor-pointer transition-colors hover:bg-muted/50">
+                      <TableCell className="font-medium">{invoice.id}</TableCell>
+                      <TableCell>{invoice.client}</TableCell>
+                      <TableCell>{invoice.amount}</TableCell>
+                      <TableCell>
+                        <StatusBadge status={invoice.status} />
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground">
+                        {invoice.date}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-32">
+                      <div className="flex flex-col items-center justify-center text-center">
+                        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                          <FileText className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <p className="font-medium">No invoices yet</p>
+                        <p className="text-sm text-muted-foreground">
+                          Create your first invoice to get started
+                        </p>
+                      </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
 
-        {/* View All Link */}
         <div className="flex justify-center">
           <Link href="/invoices">
             <Button variant="ghost" className="gap-2">
